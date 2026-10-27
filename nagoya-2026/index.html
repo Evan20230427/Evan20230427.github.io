@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="2026 年 11 月 8 日至 12 日名古屋五日親子自由行：每日行程、六間候選飯店比較、互動地圖與交通提醒。">
+  <title>2026 名古屋 5 日親子自由行｜行程與飯店地圖指南</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root { color-scheme: light; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    #map { height: min(60vh, 650px); min-height: 380px; width: 100%; border-radius: 0.85rem; z-index: 1; background: #e2e8f0; }
+    .custom-pin { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 9999px; color: white; font-weight: 800; font-size: 12px; box-shadow: 0 3px 7px rgba(0,0,0,.32); border: 2px solid white; }
+    .leaflet-popup-content { line-height: 1.6; font-size: 13px; }
+    .leaflet-container a.map-link { color: #2563eb; text-decoration: underline; font-weight: 650; }
+    .mobile-nav { padding-bottom: max(0.375rem, env(safe-area-inset-bottom)); }
+    .table-sticky th:first-child { position: sticky; left: 0; z-index: 1; background: #f8fafc; }
+    .table-sticky td:first-child { position: sticky; left: 0; z-index: 1; background: white; }
+    .table-sticky tr.highlight td:first-child { background: #eef2ff; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-24 md:pb-12">
+  <header class="bg-indigo-950 text-white sticky top-0 z-50 shadow-lg">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="bg-amber-400 text-indigo-950 text-xs font-extrabold px-2 py-1 rounded">2026/11/8（日）–11/12（四）</span>
+          <h1 class="text-lg md:text-xl font-bold tracking-tight">名古屋 5 日行程＆飯店距離地圖</h1>
+        </div>
+        <p class="text-xs text-indigo-200 mt-1">去程 11:30–15:10 ｜ 回程 11:40 起飛 ｜ 6 間飯店與主要景點</p>
+      </div>
+      <button id="copy-summary" type="button" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition text-white text-xs md:text-sm font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 shadow">
+        <i data-lucide="copy" class="w-4 h-4" aria-hidden="true"></i>複製行程摘要
+      </button>
+    </div>
+    <nav class="hidden md:flex max-w-6xl mx-auto px-4 gap-1 border-t border-indigo-800 pt-1" aria-label="主要功能分頁">
+      <button data-tab="itinerary" role="tab" type="button" class="desktop-tab bg-white text-indigo-950 font-bold px-4 py-2 rounded-t-lg text-sm">📅 5 日行程</button>
+      <button data-tab="map" role="tab" type="button" class="desktop-tab text-indigo-100 hover:bg-indigo-800 px-4 py-2 rounded-t-lg text-sm">📍 路線與飯店地圖</button>
+      <button data-tab="hotels" role="tab" type="button" class="desktop-tab text-indigo-100 hover:bg-indigo-800 px-4 py-2 rounded-t-lg text-sm">🏨 6 間飯店特色</button>
+      <button data-tab="matrix" role="tab" type="button" class="desktop-tab text-indigo-100 hover:bg-indigo-800 px-4 py-2 rounded-t-lg text-sm">⭐ 決策比較表</button>
+    </nav>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-5">
+    <aside class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl mb-5 shadow-sm" aria-label="重要旅遊提醒">
+      <h2 class="text-sm font-bold text-amber-900 mb-2">⚠️ 出發前的重要確認事項</h2>
+      <div class="text-xs md:text-sm text-amber-950 space-y-1.5">
+        <p><b>Day 2（11/9）：</b>樂高樂園目前查得該日參考營業時間為 <b>10:00–17:00</b>，不是原始程式的 16:00 閉園；仍請以當日官方日曆為準。部分設施於 11/9–11/13 暫停開放。</p>
+        <p><b>Day 5（11/12）：</b>11:40 起飛，建議預留至少 2 小時辦理機場手續；搭乘 08:00–08:30 左右合適班次的名鐵前往中部國際機場，<b>請事先確認實際時刻表與航廈</b>。</p>
+        <p><b>距離說明：</b>地圖座標為行程示意資料；「距名古屋站」以座標估算直線距離，<b>不等於實際步行公里數或交通時間</b>。交通路線是方向示意線，不是鐵道實際線形。</p>
+      </div>
+    </aside>
+
+    <section id="tab-itinerary" role="tabpanel" class="tab-content active space-y-4" aria-label="五日行程">
+      <div id="day-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <section id="tab-map" role="tabpanel" class="tab-content space-y-4" aria-label="路線與飯店地圖">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <div class="flex flex-wrap justify-between items-start gap-3 mb-3">
+          <div>
+            <h2 class="font-bold text-base md:text-lg text-slate-900">互動地圖｜六間候選飯店與行程景點</h2>
+            <p class="text-xs text-slate-500 mt-1">點標記看車站、飯店特點與 Google Maps 交通導航。</p>
+          </div>
+          <div class="flex flex-wrap gap-2 text-xs">
+            <button type="button" data-focus="all" class="bg-slate-800 hover:bg-slate-900 text-white rounded-lg px-3 py-2">全部顯示</button>
+            <button type="button" data-focus="hotels" class="bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-3 py-2">只放大看飯店</button>
+            <button type="button" data-focus="spots" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2">只放大看景點</button>
+          </div>
+        </div>
+        <div id="map" role="application" aria-label="名古屋互動地圖"></div>
+        <p id="map-error" hidden class="mt-2 text-sm text-rose-700">地圖資源載入失敗。請確認網路連線，或使用下方 Google Maps 導航連結。</p>
+        <div class="flex flex-wrap gap-x-5 gap-y-2 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-600">
+          <span><span class="inline-block w-3 h-3 rounded-full bg-rose-600 mr-1"></span>H1–H6 飯店</span>
+          <span><span class="inline-block w-3 h-3 rounded-full bg-indigo-800 mr-1"></span>名古屋站</span>
+          <span><span class="inline-block w-3 h-3 rounded-full bg-emerald-600 mr-1"></span>行程景點</span>
+          <span><span class="inline-block w-7 border-t-2 border-dashed border-blue-600 mr-1 align-middle"></span>機場方向示意</span>
+          <span><span class="inline-block w-7 border-t-2 border-dashed border-emerald-500 mr-1 align-middle"></span>樂高方向示意</span>
+          <span><span class="inline-block w-7 border-t-2 border-dashed border-cyan-500 mr-1 align-middle"></span>水族館方向示意</span>
+          <span><span class="inline-block w-7 border-t-2 border-dashed border-amber-500 mr-1 align-middle"></span>東山方向示意</span>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">※ 交通示意線僅連結代表性站點，沒有使用實際鐵道線形與即時班表，請點選「Google Maps 導航」查詢實際轉乘。</p>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <h2 class="px-4 py-3 bg-slate-100 font-bold text-sm border-b">📍 飯店與景點距離速查表（手機可左右滑動）</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[770px] text-left text-xs md:text-sm">
+            <thead class="bg-slate-50 text-slate-700 border-b"><tr><th class="p-3">編號與地點</th><th class="p-3">最近車站與步行時間</th><th class="p-3">名古屋站直線距離（約）</th><th class="p-3">操作</th></tr></thead>
+            <tbody id="distance-rows" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-hotels" role="tabpanel" class="tab-content space-y-4" aria-label="飯店特色">
+      <div id="hotel-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <section id="tab-matrix" role="tabpanel" class="tab-content space-y-4" aria-label="飯店評比">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <h2 class="px-4 py-3 bg-indigo-950 text-white font-bold text-sm">🏆 依本次行程需求評比（主觀便利性，非即時房價或評分）</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[790px] text-left text-xs md:text-sm table-sticky">
+            <thead class="bg-slate-50 text-slate-700 border-b"><tr><th class="p-3">候選飯店</th><th class="p-3">Day 1 / 5 機場往返</th><th class="p-3">Day 2 樂高樂園</th><th class="p-3">Day 3 / 4 市區景點</th><th class="p-3">建議定位</th></tr></thead>
+            <tbody id="matrix-rows" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+        <p class="p-4 text-xs text-slate-500 border-t">便利度是依附近車站、轉乘需求、攜帶行李情境做的相對建議，未考慮當日價格、實際空房與房型。H2 到 JR 太閣通口約 4 分鐘，到名鐵名古屋站約 14 分鐘。</p>
+      </div>
+    </section>
+
+    <section class="mt-8 bg-white border border-slate-200 rounded-xl p-4 text-xs text-slate-600 space-y-2" aria-label="資料與限制">
+      <h2 class="text-sm font-bold text-slate-800">官方資訊與使用說明</h2>
+      <p>頁面可儲存為單一 HTML 檔，但 <b>首次開啟與顯示地圖時仍需連網</b>，因為 Tailwind、Leaflet、Lucide 與 OpenStreetMap 圖磚來自外部服務。地圖不是 Google Maps API。</p>
+      <p class="flex flex-wrap gap-x-4 gap-y-1">
+        <a class="text-blue-700 underline" target="_blank" rel="noopener noreferrer" href="https://legoland.jp/en/operation/info/opening-hours/">樂高樂園營業日曆</a>
+        <a class="text-blue-700 underline" target="_blank" rel="noopener noreferrer" href="https://legoland.jp/en/operation/info/closed/">樂高樂園設施休止資訊</a>
+        <a class="text-blue-700 underline" target="_blank" rel="noopener noreferrer" href="https://www.nagoyaaqua.jp/faq/">名古屋港水族館</a>
+        <a class="text-blue-700 underline" target="_blank" rel="noopener noreferrer" href="https://www.higashiyama.city.nagoya.jp/english/">東山動植物園</a>
+        <a class="text-blue-700 underline" target="_blank" rel="noopener noreferrer" href="https://www.ncsm.city.nagoya.jp/en/visitors_guide/admission/index.html">名古屋市科學館</a>
+        <a class="text-blue-700 underline" target="_blank" rel="noopener noreferrer" href="https://www.meitetsu.co.jp/exp-nagoya/eng/1270186_8916.html">名鐵機場交通</a>
+      </p>
+      <p>此頁將使用者原始輸入的航班時間與預算保留為「待核對資料」；航班、營業時間及實際車次請以訂單或出發前官方資料為準。</p>
+    </section>
+  </main>
+
+  <nav class="mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 grid grid-cols-4 shadow-xl" aria-label="手機主要功能分頁">
+    <button data-tab="itinerary" role="tab" type="button" class="mobile-tab text-indigo-700 font-bold text-xs py-2 px-1 flex flex-col items-center gap-1"><i data-lucide="calendar-days" class="w-5 h-5"></i>5日行程</button>
+    <button data-tab="map" role="tab" type="button" class="mobile-tab text-slate-500 text-xs py-2 px-1 flex flex-col items-center gap-1"><i data-lucide="map-pin" class="w-5 h-5"></i>地圖距離</button>
+    <button data-tab="hotels" role="tab" type="button" class="mobile-tab text-slate-500 text-xs py-2 px-1 flex flex-col items-center gap-1"><i data-lucide="building-2" class="w-5 h-5"></i>6間飯店</button>
+    <button data-tab="matrix" role="tab" type="button" class="mobile-tab text-slate-500 text-xs py-2 px-1 flex flex-col items-center gap-1"><i data-lucide="list-checks" class="w-5 h-5"></i>決策評比</button>
+  </nav>
+  <div id="toast" class="hidden fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm shadow-xl rounded-xl px-4 py-3 z-[1000] max-w-[90vw] text-center" role="status" aria-live="polite"></div>
+
+  <script>
+    'use strict';
+    // 所有座標為原行程參考點；未宣稱已經 Google Maps 現場逐點核對。
+    const centerStation = { name: '名古屋站', lat: 35.1709, lng: 136.8815 };
+    const days = [
+      { date: '11/8（日）', title: '抵達名古屋', color: 'bg-blue-600', tag: '國際航班＆名驛', entries: [
+        { time: '11:30–15:10', title: '台中機場（RMQ）✈ 中部國際機場（NGO）', detail: '沿用原始行程提供的航班資料，請以機票或航空公司公告核對。原始機票預算紀錄：NT$ 18,970。' },
+        { time: '約16:00後', title: '入境後搭乘名鐵 μ-SKY／特急到名鐵名古屋站', detail: '直達車程最快約 28 分鐘，另外預留入境、取行李、購票與等車時間；Check-in 後在名驛商圈吃晚餐。' }
+      ] },
+      { date: '11/9（一）', title: '日本樂高樂園', color: 'bg-emerald-600', tag: '青波線直達', entries: [
+        { time: '09:00–10:00', title: '名古屋站 → 金城埠頭站', detail: '搭青波線（Aonami Line）至終點，車程約 24 分鐘，再步行約 5 分鐘。' },
+        { time: '10:00–17:00*', title: 'LEGOLAND Japan', detail: '目前查得 11/9 參考營業時間為 10:00–17:00，出發前仍需核對官方營業日曆。Lost Kingdom Adventure 預定 11/9–11/13 停止營運。' },
+        { time: '閉園後', title: 'Maker’s Pier／返回名古屋站', detail: '先確認餐廳是否營業；若孩子疲倦可直接返回市區。' }
+      ] },
+      { date: '11/10（二）', title: '名古屋港水族館', color: 'bg-cyan-600', tag: '名港線', entries: [
+        { time: '09:30–16:30', title: '名古屋港水族館', detail: '通常期營業 09:30–17:30，最晚入館是閉館前一小時。從名古屋站經榮站換乘往名古屋港方向列車，或經金山站轉名港線；名古屋港站 3 號出口步行約 5 分鐘。' },
+        { time: '17:30–21:00', title: '榮商圈／名古屋站百貨採買', detail: '藥妝、伴手禮建議安排在 Day 3、4，不要放在回國早上。' }
+      ] },
+      { date: '11/11（三）', title: '東山動植物園／科學館二選一', color: 'bg-amber-500', tag: '地鐵東山線', entries: [
+        { time: '方案 A', title: '東山動植物園', detail: '開放 09:00–16:50，最後入園 16:30。搭東山線至東山公園站，步行約 3 分鐘。部分動物約 16:00 起返回室內。' },
+        { time: '方案 B', title: '名古屋市科學館', detail: '通常開館 09:30–17:00、16:30 停止入館；伏見站 4／5 號出口步行約 5 分鐘。星象儀場次請事先確認。' },
+        { time: '傍晚', title: '完成伴手禮採買、整理行李', detail: '避免回程早班機當天再安排市區購物。' }
+      ] },
+      { date: '11/12（四）', title: '11:40 回程早班機', color: 'bg-rose-600', tag: '預留機場報到時間', entries: [
+        { time: '07:20–07:50', title: '飯店退房、出發前往名鐵名古屋站', detail: '不同飯店到名鐵月台的步行時間不同；搭機當天請額外預留行李與進站時間。' },
+        { time: '約08:00–08:30', title: '搭名鐵前往中部國際機場', detail: 'μ-SKY 最快約 28 分鐘，仍須依當日列車時刻與班次選擇。建議至少起飛前 2 小時到達航廈。' },
+        { time: '09:00–11:40', title: '航空公司報到、安檢與登機', detail: '如有空檔再採購蝦餅或免稅品。購物店家與報到櫃台／航廈依當日公告為準。' }
+      ] }
+    ];
+
+    const hotels = [
+      { code:'H1', name:'名古屋 JR 門樓酒店', en:'Nagoya JR Gate Tower Hotel', lat:35.1722, lng:136.8826,
+        address:'中村區名驛 1-1-3', access:'JR 名古屋站直結；飯店大廳位於 15F；到名鐵仍需站內步行。',
+        feature:'交通與購物非常方便，尤其適合帶孩子與大行李；但不能理解成「下樓立即就是名鐵月台」。',
+        nearby:'JR 高島屋、Gate Tower 商場、站內餐飲與百貨集中，雨天便利。', tag:'省力首選', tagClass:'bg-indigo-100 text-indigo-800', border:'border-indigo-500',
+        maps:'Nagoya JR Gate Tower Hotel', official:'https://www.associa.com/ngh/access/', airport:'★★★★★ JR 站直結；需步行至名鐵', lego:'★★★★★ 青波線從名古屋站出發', city:'★★★★☆ 東山線轉乘方便', verdict:'首選（最省力）' },
+      { code:'H2', name:'名古屋太閣通口大和 ROYNET 飯店', en:'Daiwa Roynet Hotel Nagoya Taiko-doriguchi', lat:35.1695, lng:136.8783,
+        address:'中村區椿町 18-10', access:'JR 名古屋站太閣通口約 4 分鐘；名鐵名古屋站約 14 分鐘（飯店官網）。',
+        feature:'近新幹線口與青波線方向，適合注重房價與地點平衡的旅客；機場線步行需另計。',
+        nearby:'站西口的餐飲、便利商店、ESCA 地下街與電器行選擇多。', tag:'高 CP 值候選', tagClass:'bg-emerald-100 text-emerald-800', border:'border-emerald-500',
+        maps:'Daiwa Roynet Hotel Nagoya Taiko-doriguchi', official:'https://www.daiwaroynet.jp/en/nagoya-taikodoriguchi/', airport:'★★★★☆ 到名鐵約 14 分鐘', lego:'★★★★★ 到 JR／青波線方便', city:'★★★★☆ 站內轉地鐵', verdict:'首選（預算平衡）' },
+      { code:'H3', name:'名古屋王子大飯店天空塔', en:'Nagoya Prince Hotel Sky Tower', lat:35.1622, lng:136.8842,
+        address:'中村區平池町 4-60-12', access:'青波線笹島演奏廳站直結約 2 分鐘；名古屋站步行約 12–17 分鐘（依出口）。',
+        feature:'高樓景觀、房間空間與全家住宿體驗出色，往樂高樂園方向特別便利。',
+        nearby:'Global Gate 商場和餐廳；回到名古屋站可搭青波線一站。', tag:'景觀度假型', tagClass:'bg-sky-100 text-sky-800', border:'border-slate-200',
+        maps:'Nagoya Prince Hotel Sky Tower', official:'https://www.princehotels.com/nagoya/map-direction/', airport:'★★★☆☆ 需先回名鐵名古屋', lego:'★★★★★ 青波線車站直結', city:'★★★☆☆ 多需先轉乘', verdict:'次選（景觀最好）' },
+      { code:'H4', name:'SONO Moon Nagoya', en:'SONO Moon Nagoya', lat:35.1690, lng:136.8888,
+        address:'中村區名驛 4-22-21', access:'名古屋站櫻通口步行約 8 分鐘（官網）；依進出站口時間不同。',
+        feature:'新品牌的市中心生活風格飯店，步行可到名古屋站及柳橋市場周邊。',
+        nearby:'柳橋中央市場、餐廳、超商與名驛東側商店。', tag:'美食與商圈', tagClass:'bg-purple-100 text-purple-800', border:'border-slate-200',
+        maps:'SONO Moon Nagoya', official:'https://www.sonomoonnagoya.com/en', airport:'★★★★☆ 步行至名鐵站', lego:'★★★★☆ 走到青波線起站', city:'★★★★☆ 可步行轉地鐵', verdict:'佳（名驛東側）' },
+      { code:'H5', name:'Just Inn Premium 名古屋站', en:'Just Inn Premium Nagoya Station', lat:35.1730, lng:136.8931,
+        address:'中區丸之內 1-13-9', access:'國際中心站 2 號出口步行約 3 分鐘；丸之內站 7 號出口約 5 分鐘；名古屋站約 10 分鐘（官網）。',
+        feature:'平價商務型，實際比「名古屋站旁」稍遠，較適合願意多步行或搭一站地鐵的旅客。',
+        nearby:'辦公商務區、便利商店；夜間街道相對清靜。', tag:'經濟型候選', tagClass:'bg-amber-100 text-amber-900', border:'border-amber-300',
+        maps:'Just Inn Premium Nagoya Station', official:'https://www.just-inn.jp/nagoyaeki/en/', airport:'★★★☆☆ 步行約 10 分到名古屋站；名鐵另計', lego:'★★★☆☆ 步行或搭一站地鐵', city:'★★★★☆ 鄰近國際中心站', verdict:'預算備選' },
+      { code:'H6', name:'MYSTAYS 名古屋榮酒店', en:'HOTEL MYSTAYS Nagoya Sakae', lat:35.16972, lng:136.91504,
+        address:'中區東櫻 2-23-22', access:'榮站 5 號出口步行約 7 分鐘（官網）。',
+        feature:'在榮商圈東側，市區百貨觀光方便，但樂高樂園與機場線皆要轉乘。',
+        nearby:'榮商圈、百貨、餐飲與夜間購物選擇多。', tag:'榮商圈購物', tagClass:'bg-pink-100 text-pink-800', border:'border-slate-200',
+        maps:'HOTEL MYSTAYS Nagoya Sakae', official:'https://www.mystays.com/en-us/location-hotel-mystays-nagoya-sakae-aichi/', airport:'★★★☆☆ 需搭地鐵轉名鐵', lego:'★★★☆☆ 需轉青波線', city:'★★★★★ 東山線／名城線方便', verdict:'佳（以榮購物為主）' }
+    ];
+
+    const spots = [
+      { code:'D1/5', name:'中部國際機場（NGO）', lat:34.8584, lng:136.8054, access:'機場站接名鐵；μ-SKY 最快約 28 分鐘至名鐵名古屋站', note:'去程 11/8 約 15:10 抵達；回程 11/12 11:40 起飛', maps:'Chubu Centrair International Airport' },
+      { code:'D2', name:'日本樂高樂園', lat:35.0506, lng:136.8438, access:'青波線金城埠頭站，步行約 5 分鐘', note:'2026/11/9 參考 10:00–17:00，出發前再核官方日曆', maps:'LEGOLAND Japan' },
+      { code:'D3', name:'名古屋港水族館', lat:35.0905, lng:136.8784, access:'名港線名古屋港站 3 號出口，步行約 5 分鐘', note:'11/10 通常期 09:30–17:30；16:30 停止入館', maps:'Port of Nagoya Public Aquarium' },
+      { code:'D4A', name:'東山動植物園', lat:35.1565, lng:136.9818, access:'東山線東山公園站，步行約 3 分鐘', note:'09:00–16:50；最後入園 16:30', maps:'Higashiyama Zoo and Botanical Gardens' },
+      { code:'D4B', name:'名古屋市科學館', lat:35.1651, lng:136.8997, access:'東山線／鶴舞線伏見站，步行約 5 分鐘', note:'09:30–17:00；通常 16:30 停止入館', maps:'Nagoya City Science Museum' }
+    ];
+
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const mapsSearch = place => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(place);
+    const mapsDirections = place => 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent('Nagoya Station, Japan') + '&destination=' + encodeURIComponent(place) + '&travelmode=transit';
+    // Haversine 直線距離：以手動參考座標計算，絕非步行或鐵路距離。
+    function straightKm(a, b) {
+      const rad = n => n * Math.PI / 180;
+      const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+      const x = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+      return 6371 * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+    }
+    const dist = place => straightKm(centerStation, place).toFixed(1) + ' km';
+    const link = (url, label) => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="text-blue-700 hover:text-blue-900 underline underline-offset-2">${esc(label)}</a>`;
+
+    function renderPage() {
+      document.getElementById('day-cards').innerHTML = days.map((d, i) => `
+        <article class="bg-white rounded-xl shadow-sm border ${i === 4 ? 'border-2 border-rose-400 md:col-span-2 lg:col-span-2' : 'border-slate-200'} overflow-hidden">
+          <div class="${d.color} text-white px-4 py-3 flex flex-wrap justify-between gap-2 items-center"><h2 class="font-bold">Day ${i + 1}｜${esc(d.date)}</h2><span class="text-xs bg-white/20 rounded px-2 py-1">${esc(d.tag)}</span></div>
+          <div class="p-4 space-y-4 ${i === 4 ? 'sm:grid sm:grid-cols-3 sm:gap-3 sm:space-y-0' : ''}">
+            ${d.entries.map(e => `<div class="${i === 4 ? 'p-3 rounded-lg bg-rose-50' : 'flex items-start gap-3'}">
+              <span class="shrink-0 text-xs font-mono font-bold ${i === 4 ? 'block mb-1 text-rose-700' : 'px-2 py-1 bg-slate-100 text-slate-700 rounded'}">${esc(e.time)}</span>
+              <div><h3 class="text-sm font-bold text-slate-900">${esc(e.title)}</h3><p class="text-xs text-slate-600 mt-1 leading-relaxed">${esc(e.detail)}</p></div>
+            </div>`).join('')}
+          </div>
+        </article>`).join('');
+
+      document.getElementById('hotel-cards').innerHTML = hotels.map(h => `
+        <article class="bg-white rounded-xl p-4 shadow-sm border-2 ${h.border}">
+          <span class="inline-block text-xs font-bold ${h.tagClass} px-2 py-1 rounded">${esc(h.code)}｜${esc(h.tag)}</span>
+          <h2 class="text-base font-bold text-slate-900 mt-2">${esc(h.name)}</h2>
+          <p class="text-xs text-slate-500">${esc(h.en)}</p>
+          <p class="text-xs text-slate-600 mt-1">地址：${esc(h.address)}</p>
+          <div class="mt-3 space-y-2 text-sm text-slate-700 leading-relaxed">
+            <p><b>🚉 交通：</b>${esc(h.access)}</p><p><b>🏨 住宿特點：</b>${esc(h.feature)}</p><p><b>🛍️ 生活機能：</b>${esc(h.nearby)}</p>
+          </div>
+          <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold">
+            <button type="button" data-show-hotel="${h.code}" class="bg-indigo-50 text-indigo-800 px-3 py-2 rounded-lg hover:bg-indigo-100">📍 地圖定位</button>
+            ${link(mapsSearch(h.maps), 'Google Maps')}
+            ${link(h.official, '飯店官網')}
+          </div>
+        </article>`).join('');
+
+      const toRow = (p, isHotel) => `<tr>
+        <td class="p-3 font-semibold ${isHotel ? 'text-rose-700' : 'text-emerald-800'}">${esc(p.code)}｜${esc(p.name)}</td>
+        <td class="p-3 max-w-xs">${esc(p.access)}</td>
+        <td class="p-3 tabular-nums">${dist(p)} <span class="text-slate-500">（直線）</span></td>
+        <td class="p-3 whitespace-nowrap">${link(mapsSearch(p.maps), '開啟導航')} <button type="button" data-show-${isHotel ? 'hotel' : 'spot'}="${esc(p.code)}" class="ml-2 underline text-indigo-700">地圖定位</button></td>
+      </tr>`;
+      document.getElementById('distance-rows').innerHTML = [...hotels.map(h => toRow(h, true)), ...spots.map(s => toRow(s, false))].join('');
+
+      document.getElementById('matrix-rows').innerHTML = hotels.map((h, i) => `<tr class="${i < 2 ? 'highlight bg-indigo-50/60' : ''}">
+        <td class="p-3 font-bold min-w-[190px]">${esc(h.code)} ${esc(h.name)}</td><td class="p-3">${esc(h.airport)}</td><td class="p-3">${esc(h.lego)}</td><td class="p-3">${esc(h.city)}</td>
+        <td class="p-3 font-bold text-indigo-800">${esc(h.verdict)}</td>
+      </tr>`).join('');
+      if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+    }
+
+    let map = null;
+    let hotelMarkers = [], spotMarkers = [], allMarkers = [], stationMarker;
+    let mapInitialized = false;
+    function pin(code, color) {
+      return L.divIcon({className:'', html:`<div class="custom-pin" style="background:${color}">${esc(code)}</div>`, iconSize:[34,34], iconAnchor:[17,17], popupAnchor:[0,-18]});
+    }
+    function initMap() {
+      if (mapInitialized || typeof L === 'undefined') {
+        if (typeof L === 'undefined') document.getElementById('map-error').hidden = false;
+        return;
+      }
+      map = L.map('map', {scrollWheelZoom:false});
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+        maxZoom:19
+      }).addTo(map);
+      stationMarker = L.marker([centerStation.lat, centerStation.lng], {icon:pin('驛','#312e81')})
+        .addTo(map).bindPopup('<b>🚉 名古屋站</b><br>JR、名鐵、青波線、地鐵的主要轉乘地點。請注意各月台並非同一位置。');
+      allMarkers.push(stationMarker);
+      hotels.forEach(h => {
+        const popup = `<b>🏨 ${esc(h.code)} ${esc(h.name)}</b><br>🚉 ${esc(h.access)}<br>📏 距名古屋站直線約 ${dist(h)}<br>💡 ${esc(h.feature)}<br><a class="map-link" href="${mapsDirections(h.maps)}" target="_blank" rel="noopener noreferrer">Google Maps 交通導航</a>`;
+        const marker = L.marker([h.lat,h.lng], {icon:pin(h.code,'#e11d48')}).addTo(map).bindPopup(popup);
+        hotelMarkers.push(marker); allMarkers.push(marker);
+      });
+      spots.forEach(s => {
+        const popup = `<b>📍 ${esc(s.code)} ${esc(s.name)}</b><br>🚉 ${esc(s.access)}<br>📏 距名古屋站直線約 ${dist(s)}<br>🕘 ${esc(s.note)}<br><a class="map-link" href="${mapsDirections(s.maps)}" target="_blank" rel="noopener noreferrer">Google Maps 交通導航</a>`;
+        const marker = L.marker([s.lat,s.lng], {icon:pin(s.code,'#059669')}).addTo(map).bindPopup(popup);
+        spotMarkers.push(marker); allMarkers.push(marker);
+      });
+      // 注意：以下折線僅表示大致方向，不代表實際鐵道、行車路徑或轉乘站。
+      const segments = [
+        [centerStation, spots[0], '#2563eb'],
+        [centerStation, spots[1], '#10b981'],
+        [centerStation, spots[2], '#06b6d4'],
+        [centerStation, spots[3], '#f59e0b']
+      ];
+      segments.forEach(([a,b,color]) => L.polyline([[a.lat,a.lng],[b.lat,b.lng]], {color,weight:2,opacity:.65,dashArray:'5 8',interactive:false}).addTo(map));
+      mapInitialized = true;
+      focusMap('all');
+      map.on('tileerror', () => { document.getElementById('map-error').hidden = false; });
+    }
+    function focusMap(kind) {
+      if (!map) return;
+      const markers = kind === 'hotels' ? hotelMarkers : kind === 'spots' ? spotMarkers : allMarkers;
+      if (!markers.length) return;
+      map.fitBounds(L.featureGroup(markers).getBounds().pad(kind === 'hotels' ? 0.25 : 0.12), {maxZoom:14});
+    }
+    function switchTab(name) {
+      const tabs = ['itinerary','map','hotels','matrix'];
+      if (!tabs.includes(name)) return;
+      tabs.forEach(t => {
+        const panel = document.getElementById('tab-' + t);
+        const active = t === name;
+        panel.classList.toggle('active',active);
+        document.querySelectorAll(`[data-tab="${t}"]`).forEach(btn => {
+          btn.setAttribute('aria-selected', String(active));
+          btn.classList.toggle('font-bold', active);
+          if (btn.classList.contains('desktop-tab')) {
+            btn.classList.toggle('bg-white',active); btn.classList.toggle('text-indigo-950',active);
+            btn.classList.toggle('text-indigo-100',!active); btn.classList.toggle('hover:bg-indigo-800',!active);
+          } else {
+            btn.classList.toggle('text-indigo-700',active); btn.classList.toggle('text-slate-500',!active);
+          }
+        });
+      });
+      if (name === 'map') requestAnimationFrame(() => {
+        initMap();
+        if (map) {map.invalidateSize(); if (!mapInitialized) focusMap('all');}
+      });
+      window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    }
+    function showOnMap(kind, code) {
+      const data = kind === 'hotel' ? hotels : spots;
+      const markers = kind === 'hotel' ? hotelMarkers : spotMarkers;
+      const index = data.findIndex(p => p.code === code);
+      if (index < 0) return;
+      switchTab('map');
+      // 等隱藏地圖重新計算容器尺寸，避免移動端定位偏移。
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (!map || !markers[index]) return;
+        map.invalidateSize();
+        map.setView([data[index].lat,data[index].lng],14,{animate:false});
+        markers[index].openPopup();
+      }));
+    }
+    function summaryText() {
+      return `【2026 名古屋 5 日親子自由行】\n📅 11/8（日）–11/12（四）\n✈️ 去程：11/8 11:30–15:10 台中→名古屋（原始行程資料，請核對機票）\n🏙️ Day 1：機場→名古屋站、入住與晚餐\n🧱 Day 2（11/9）：日本樂高樂園，預估 10:00–17:00（請核對官方日曆）\n🐬 Day 3（11/10）：名古屋港水族館，通常期 09:30–17:30\n🐨 Day 4（11/11）：東山動植物園 09:00–16:50，或名古屋市科學館 09:30–17:00\n✈️ Day 5（11/12）：11:40 起飛；預計 08:00–08:30 左右搭名鐵前往機場，仍需查實際班表。\n\n🏨 主要候選：\nH1 名古屋 JR 門樓酒店（JR 名古屋站直結）\nH2 大和 ROYNET 太閣通口（JR 太閣通口約 4 分鐘；名鐵約 14 分鐘）\nH3 名古屋王子大飯店天空塔（青波線笹島演奏廳站直結）\nH4 SONO Moon Nagoya（名古屋站步行約 8 分鐘）\nH5 Just Inn Premium（名古屋站步行約 10 分鐘）\nH6 MYSTAYS 名古屋榮（榮站步行約 7 分鐘）\n\n※ 行程時間、票價與營業資訊出發前再確認。`;
+    }
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(toast.timeout);
+      toast.timeout = setTimeout(() => el.classList.add('hidden'), 3800);
+    }
+    async function copyShareSummary() {
+      const text = summaryText();
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        try { await navigator.clipboard.writeText(text); toast('✅ 已複製行程摘要，可貼到 LINE 分享。'); return; } catch (_) { /* fallback */ }
+      }
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly','');
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select(); ta.setSelectionRange(0, ta.value.length);
+      let copied = false;
+      try { copied = document.execCommand('copy'); } catch (_) { copied = false; }
+      ta.remove();
+      if (copied) toast('✅ 已複製行程摘要，可貼到 LINE 分享。');
+      else window.prompt('自動複製受瀏覽器限制，請長按選取以下文字複製：', text);
+    }
+    document.addEventListener('click', e => {
+      const tab = e.target.closest('[data-tab]');
+      if (tab) { switchTab(tab.dataset.tab); return; }
+      const focus = e.target.closest('[data-focus]');
+      if (focus) { focusMap(focus.dataset.focus); return; }
+      const hotel = e.target.closest('[data-show-hotel]');
+      if (hotel) { showOnMap('hotel',hotel.dataset.showHotel); return; }
+      const spot = e.target.closest('[data-show-spot]');
+      if (spot) { showOnMap('spot',spot.dataset.showSpot); }
+    });
+    document.getElementById('copy-summary').addEventListener('click', copyShareSummary);
+    renderPage();
+    switchTab('itinerary');
+  </script>
+</body>
+</html>
