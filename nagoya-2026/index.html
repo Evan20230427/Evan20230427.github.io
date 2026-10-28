@@ -118,7 +118,7 @@
 
     <section class="mt-8 bg-white border border-slate-200 rounded-xl p-4 text-xs text-slate-600 space-y-2" aria-label="資料與限制">
       <h2 class="text-sm font-bold text-slate-800">官方資訊與使用說明</h2>
-      <p>頁面可儲存為單一 HTML 檔，但 <b>首次開啟與顯示地圖時仍需連網</b>，因為 Tailwind、Leaflet、Lucide 與 OpenStreetMap 圖磚來自外部服務。地圖不是 Google Maps API。</p>
+      <p>頁面為純靜態架構，但 <b>首次開啟與顯示地圖時仍需連網</b>，因為 Tailwind、Leaflet、Lucide 與 OpenStreetMap 圖磚來自外部服務。地圖不是 Google Maps API。</p>
       <p class="flex flex-wrap gap-x-4 gap-y-1">
         <a class="text-blue-700 underline" target="_blank" rel="noopener noreferrer" href="https://legoland.jp/en/operation/info/opening-hours/">樂高樂園營業日曆</a>
         <a class="text-blue-700 underline" target="_blank" rel="noopener noreferrer" href="https://legoland.jp/en/operation/info/closed/">樂高樂園設施休止資訊</a>
@@ -141,8 +141,14 @@
 
   <script>
     'use strict';
-    // 所有座標為原行程參考點；未宣稱已經 Google Maps 現場逐點核對。
+    /**
+     * 核心樞紐：名古屋站座標物件 (基準點)
+     */
     const centerStation = { name: '名古屋站', lat: 35.1709, lng: 136.8815 };
+
+    /**
+     * 五日行程資料結構清單
+     */
     const days = [
       { date: '11/8（日）', title: '抵達名古屋', color: 'bg-blue-600', tag: '國際航班＆名驛', entries: [
         { time: '11:30–15:10', title: '台中機場（RMQ）✈ 中部國際機場（NGO）', detail: '沿用原始行程提供的航班資料，請以機票或航空公司公告核對。原始機票預算紀錄：NT$ 18,970。' },
@@ -169,6 +175,9 @@
       ] }
     ];
 
+    /**
+     * 六間候選飯店特色資料物件清單 (H1 - H6)
+     */
     const hotels = [
       { code:'H1', name:'名古屋 JR 門樓酒店', en:'Nagoya JR Gate Tower Hotel', lat:35.1722, lng:136.8826,
         address:'中村區名驛 1-1-3', access:'JR 名古屋站直結；飯店大廳位於 15F；到名鐵仍需站內步行。',
@@ -202,6 +211,9 @@
         maps:'HOTEL MYSTAYS Nagoya Sakae', official:'https://www.mystays.com/en-us/location-hotel-mystays-nagoya-sakae-aichi/', airport:'★★★☆☆ 需搭地鐵轉名鐵', lego:'★★★☆☆ 需轉青波線', city:'★★★★★ 東山線／名城線方便', verdict:'佳（以榮購物為主）' }
     ];
 
+    /**
+     * 關鍵交通節點與景點資料清單 (S1 - S6)
+     */
     const spots = [
       { code:'D1/5', name:'中部國際機場（NGO）', lat:34.8584, lng:136.8054, access:'機場站接名鐵；μ-SKY 最快約 28 分鐘至名鐵名古屋站', note:'去程 11/8 約 15:10 抵達；回程 11/12 11:40 起飛', maps:'Chubu Centrair International Airport' },
       { code:'D2', name:'日本樂高樂園', lat:35.0506, lng:136.8438, access:'青波線金城埠頭站，步行約 5 分鐘', note:'2026/11/9 參考 10:00–17:00，出發前再核官方日曆', maps:'LEGOLAND Japan' },
@@ -210,20 +222,60 @@
       { code:'D4B', name:'名古屋市科學館', lat:35.1651, lng:136.8997, access:'東山線／鶴舞線伏見站，步行約 5 分鐘', note:'09:30–17:00；通常 16:30 停止入館', maps:'Nagoya City Science Museum' }
     ];
 
+    /**
+     * HTML 特殊字元跳脫，防止 XSS 攻擊
+     * @param {string} s - 原始字串
+     * @returns {string} 跳脫後的安全字串
+     */
     const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    /**
+     * 產生 Google Maps 地點搜尋網址
+     * @param {string} place - 搜尋地點關鍵字
+     * @returns {string} 搜尋網址
+     */
     const mapsSearch = place => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(place);
+
+    /**
+     * 產生以名古屋站為起點之 Google Maps 大眾運輸導航網址
+     * @param {string} place - 目的地關鍵字
+     * @returns {string} 導航網址
+     */
     const mapsDirections = place => 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent('Nagoya Station, Japan') + '&destination=' + encodeURIComponent(place) + '&travelmode=transit';
-    // Haversine 直線距離：以手動參考座標計算，絕非步行或鐵路距離。
+
+    /**
+     * 使用 Haversine 公式計算兩組經緯度之球面直線距離
+     * @param {{lat:number, lng:number}} a - 起始座標
+     * @param {{lat:number, lng:number}} b - 目標座標
+     * @returns {number} 距離（公里）
+     */
     function straightKm(a, b) {
       const rad = n => n * Math.PI / 180;
       const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
       const x = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
       return 6371 * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
     }
+
+    /**
+     * 計算地點距名古屋站之格式化直線距離
+     * @param {{lat:number, lng:number}} place - 目標地點
+     * @returns {string} 格式化距離 (如 1.2 km)
+     */
     const dist = place => straightKm(centerStation, place).toFixed(1) + ' km';
+
+    /**
+     * 產生安全之外開連結標籤 (target="_blank" rel="noopener noreferrer")
+     * @param {string} url - 連結網址
+     * @param {string} label - 顯示文字
+     * @returns {string} HTML 片段
+     */
     const link = (url, label) => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="text-blue-700 hover:text-blue-900 underline underline-offset-2">${esc(label)}</a>`;
 
+    /**
+     * 動態渲染行程卡片、飯店卡片、速查表與評比表
+     */
     function renderPage() {
+      // 1. 渲染每日行程卡片
       document.getElementById('day-cards').innerHTML = days.map((d, i) => `
         <article class="bg-white rounded-xl shadow-sm border ${i === 4 ? 'border-2 border-rose-400 md:col-span-2 lg:col-span-2' : 'border-slate-200'} overflow-hidden">
           <div class="${d.color} text-white px-4 py-3 flex flex-wrap justify-between gap-2 items-center"><h2 class="font-bold">Day ${i + 1}｜${esc(d.date)}</h2><span class="text-xs bg-white/20 rounded px-2 py-1">${esc(d.tag)}</span></div>
@@ -235,6 +287,7 @@
           </div>
         </article>`).join('');
 
+      // 2. 渲染六間飯店卡片
       document.getElementById('hotel-cards').innerHTML = hotels.map(h => `
         <article class="bg-white rounded-xl p-4 shadow-sm border-2 ${h.border}">
           <span class="inline-block text-xs font-bold ${h.tagClass} px-2 py-1 rounded">${esc(h.code)}｜${esc(h.tag)}</span>
@@ -251,6 +304,7 @@
           </div>
         </article>`).join('');
 
+      // 3. 渲染距離速查表
       const toRow = (p, isHotel) => `<tr>
         <td class="p-3 font-semibold ${isHotel ? 'text-rose-700' : 'text-emerald-800'}">${esc(p.code)}｜${esc(p.name)}</td>
         <td class="p-3 max-w-xs">${esc(p.access)}</td>
@@ -259,101 +313,172 @@
       </tr>`;
       document.getElementById('distance-rows').innerHTML = [...hotels.map(h => toRow(h, true)), ...spots.map(s => toRow(s, false))].join('');
 
+      // 4. 渲染決策比較表
       document.getElementById('matrix-rows').innerHTML = hotels.map((h, i) => `<tr class="${i < 2 ? 'highlight bg-indigo-50/60' : ''}">
         <td class="p-3 font-bold min-w-[190px]">${esc(h.code)} ${esc(h.name)}</td><td class="p-3">${esc(h.airport)}</td><td class="p-3">${esc(h.lego)}</td><td class="p-3">${esc(h.city)}</td>
         <td class="p-3 font-bold text-indigo-800">${esc(h.verdict)}</td>
       </tr>`).join('');
-      if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+
+      // 重新建立 Lucide 圖示
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
     }
 
     let map = null;
     let hotelMarkers = [], spotMarkers = [], allMarkers = [], stationMarker;
     let mapInitialized = false;
+
+    /**
+     * 建立 Leaflet 自訂樣式 Pin 圖標
+     * @param {string} code - 圖標標籤代碼 (如 H1, S1, 驛)
+     * @param {string} color - 背景顏色十六進位值
+     * @returns {L.DivIcon} Leaflet 圖標物件
+     */
     function pin(code, color) {
-      return L.divIcon({className:'', html:`<div class="custom-pin" style="background:${color}">${esc(code)}</div>`, iconSize:[34,34], iconAnchor:[17,17], popupAnchor:[0,-18]});
+      return L.divIcon({
+        className: '',
+        html: `<div class="custom-pin" style="background:${color}">${esc(code)}</div>`,
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+        popupAnchor: [0, -18]
+      });
     }
+
+    /**
+     * 初始化 Leaflet 地圖、綁定圖磚與標記
+     */
     function initMap() {
       if (mapInitialized || typeof L === 'undefined') {
         if (typeof L === 'undefined') document.getElementById('map-error').hidden = false;
         return;
       }
-      map = L.map('map', {scrollWheelZoom:false});
+      map = L.map('map', { scrollWheelZoom: false });
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
-        maxZoom:19
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+        maxZoom: 19
       }).addTo(map);
-      stationMarker = L.marker([centerStation.lat, centerStation.lng], {icon:pin('驛','#312e81')})
+
+      stationMarker = L.marker([centerStation.lat, centerStation.lng], { icon: pin('驛', '#312e81') })
         .addTo(map).bindPopup('<b>🚉 名古屋站</b><br>JR、名鐵、青波線、地鐵的主要轉乘地點。請注意各月台並非同一位置。');
       allMarkers.push(stationMarker);
+
       hotels.forEach(h => {
         const popup = `<b>🏨 ${esc(h.code)} ${esc(h.name)}</b><br>🚉 ${esc(h.access)}<br>📏 距名古屋站直線約 ${dist(h)}<br>💡 ${esc(h.feature)}<br><a class="map-link" href="${mapsDirections(h.maps)}" target="_blank" rel="noopener noreferrer">Google Maps 交通導航</a>`;
-        const marker = L.marker([h.lat,h.lng], {icon:pin(h.code,'#e11d48')}).addTo(map).bindPopup(popup);
-        hotelMarkers.push(marker); allMarkers.push(marker);
+        const marker = L.marker([h.lat, h.lng], { icon: pin(h.code, '#e11d48') }).addTo(map).bindPopup(popup);
+        hotelMarkers.push(marker);
+        allMarkers.push(marker);
       });
+
       spots.forEach(s => {
         const popup = `<b>📍 ${esc(s.code)} ${esc(s.name)}</b><br>🚉 ${esc(s.access)}<br>📏 距名古屋站直線約 ${dist(s)}<br>🕘 ${esc(s.note)}<br><a class="map-link" href="${mapsDirections(s.maps)}" target="_blank" rel="noopener noreferrer">Google Maps 交通導航</a>`;
-        const marker = L.marker([s.lat,s.lng], {icon:pin(s.code,'#059669')}).addTo(map).bindPopup(popup);
-        spotMarkers.push(marker); allMarkers.push(marker);
+        const marker = L.marker([s.lat, s.lng], { icon: pin(s.code, '#059669') }).addTo(map).bindPopup(popup);
+        spotMarkers.push(marker);
+        allMarkers.push(marker);
       });
-      // 注意：以下折線僅表示大致方向，不代表實際鐵道、行車路徑或轉乘站。
+
+      // 交通方向示意折線
       const segments = [
         [centerStation, spots[0], '#2563eb'],
         [centerStation, spots[1], '#10b981'],
         [centerStation, spots[2], '#06b6d4'],
         [centerStation, spots[3], '#f59e0b']
       ];
-      segments.forEach(([a,b,color]) => L.polyline([[a.lat,a.lng],[b.lat,b.lng]], {color,weight:2,opacity:.65,dashArray:'5 8',interactive:false}).addTo(map));
+      segments.forEach(([a, b, color]) => {
+        L.polyline([[a.lat, a.lng], [b.lat, b.lng]], {
+          color,
+          weight: 2,
+          opacity: .65,
+          dashArray: '5 8',
+          interactive: false
+        }).addTo(map);
+      });
+
       mapInitialized = true;
       focusMap('all');
       map.on('tileerror', () => { document.getElementById('map-error').hidden = false; });
     }
+
+    /**
+     * 調整地圖縮放邊界與焦點
+     * @param {'all'|'hotels'|'spots'} kind - 焦點類別
+     */
     function focusMap(kind) {
       if (!map) return;
       const markers = kind === 'hotels' ? hotelMarkers : kind === 'spots' ? spotMarkers : allMarkers;
       if (!markers.length) return;
-      map.fitBounds(L.featureGroup(markers).getBounds().pad(kind === 'hotels' ? 0.25 : 0.12), {maxZoom:14});
+      map.fitBounds(L.featureGroup(markers).getBounds().pad(kind === 'hotels' ? 0.25 : 0.12), { maxZoom: 14 });
     }
+
+    /**
+     * 切換主頁籤分頁
+     * @param {'itinerary'|'map'|'hotels'|'matrix'} name - 目標頁籤代碼
+     */
     function switchTab(name) {
-      const tabs = ['itinerary','map','hotels','matrix'];
+      const tabs = ['itinerary', 'map', 'hotels', 'matrix'];
       if (!tabs.includes(name)) return;
       tabs.forEach(t => {
         const panel = document.getElementById('tab-' + t);
         const active = t === name;
-        panel.classList.toggle('active',active);
+        panel.classList.toggle('active', active);
         document.querySelectorAll(`[data-tab="${t}"]`).forEach(btn => {
           btn.setAttribute('aria-selected', String(active));
           btn.classList.toggle('font-bold', active);
           if (btn.classList.contains('desktop-tab')) {
-            btn.classList.toggle('bg-white',active); btn.classList.toggle('text-indigo-950',active);
-            btn.classList.toggle('text-indigo-100',!active); btn.classList.toggle('hover:bg-indigo-800',!active);
+            btn.classList.toggle('bg-white', active);
+            btn.classList.toggle('text-indigo-950', active);
+            btn.classList.toggle('text-indigo-100', !active);
+            btn.classList.toggle('hover:bg-indigo-800', !active);
           } else {
-            btn.classList.toggle('text-indigo-700',active); btn.classList.toggle('text-slate-500',!active);
+            btn.classList.toggle('text-indigo-700', active);
+            btn.classList.toggle('text-slate-500', !active);
           }
         });
       });
-      if (name === 'map') requestAnimationFrame(() => {
-        initMap();
-        if (map) {map.invalidateSize(); if (!mapInitialized) focusMap('all');}
-      });
-      window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+
+      if (name === 'map') {
+        requestAnimationFrame(() => {
+          initMap();
+          if (map) {
+            map.invalidateSize();
+            if (!mapInitialized) focusMap('all');
+          }
+        });
+      }
+      window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     }
+
+    /**
+     * 由外部卡片連動地圖並定位
+     * @param {'hotel'|'spot'} kind - 標記種類
+     * @param {string} code - 標記代碼
+     */
     function showOnMap(kind, code) {
       const data = kind === 'hotel' ? hotels : spots;
       const markers = kind === 'hotel' ? hotelMarkers : spotMarkers;
       const index = data.findIndex(p => p.code === code);
       if (index < 0) return;
       switchTab('map');
-      // 等隱藏地圖重新計算容器尺寸，避免移動端定位偏移。
       requestAnimationFrame(() => requestAnimationFrame(() => {
         if (!map || !markers[index]) return;
         map.invalidateSize();
-        map.setView([data[index].lat,data[index].lng],14,{animate:false});
+        map.setView([data[index].lat, data[index].lng], 14, { animate: false });
         markers[index].openPopup();
       }));
     }
+
+    /**
+     * 組合 LINE 分享用之純文字行程摘要
+     * @returns {string} 行程摘要字串
+     */
     function summaryText() {
       return `【2026 名古屋 5 日親子自由行】\n📅 11/8（日）–11/12（四）\n✈️ 去程：11/8 11:30–15:10 台中→名古屋（原始行程資料，請核對機票）\n🏙️ Day 1：機場→名古屋站、入住與晚餐\n🧱 Day 2（11/9）：日本樂高樂園，預估 10:00–17:00（請核對官方日曆）\n🐬 Day 3（11/10）：名古屋港水族館，通常期 09:30–17:30\n🐨 Day 4（11/11）：東山動植物園 09:00–16:50，或名古屋市科學館 09:30–17:00\n✈️ Day 5（11/12）：11:40 起飛；預計 08:00–08:30 左右搭名鐵前往機場，仍需查實際班表。\n\n🏨 主要候選：\nH1 名古屋 JR 門樓酒店（JR 名古屋站直結）\nH2 大和 ROYNET 太閣通口（JR 太閣通口約 4 分鐘；名鐵約 14 分鐘）\nH3 名古屋王子大飯店天空塔（青波線笹島演奏廳站直結）\nH4 SONO Moon Nagoya（名古屋站步行約 8 分鐘）\nH5 Just Inn Premium（名古屋站步行約 10 分鐘）\nH6 MYSTAYS 名古屋榮（榮站步行約 7 分鐘）\n\n※ 行程時間、票價與營業資訊出發前再確認。`;
     }
+
+    /**
+     * 顯示短暫浮動提示通知
+     * @param {string} msg - 提示訊息
+     */
     function toast(msg) {
       const el = document.getElementById('toast');
       el.textContent = msg;
@@ -361,34 +486,52 @@
       clearTimeout(toast.timeout);
       toast.timeout = setTimeout(() => el.classList.add('hidden'), 3800);
     }
+
+    /**
+     * 複製行程摘要至系統剪貼簿 (支援現代 Clipboard API 與降級方案)
+     */
     async function copyShareSummary() {
       const text = summaryText();
       if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        try { await navigator.clipboard.writeText(text); toast('✅ 已複製行程摘要，可貼到 LINE 分享。'); return; } catch (_) { /* fallback */ }
+        try {
+          await navigator.clipboard.writeText(text);
+          toast('✅ 已複製行程摘要，可貼到 LINE 分享。');
+          return;
+        } catch (_) { /* 降級回退 */ }
       }
       const ta = document.createElement('textarea');
       ta.value = text;
-      ta.setAttribute('readonly','');
-      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
       document.body.appendChild(ta);
-      ta.select(); ta.setSelectionRange(0, ta.value.length);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
       let copied = false;
       try { copied = document.execCommand('copy'); } catch (_) { copied = false; }
       ta.remove();
-      if (copied) toast('✅ 已複製行程摘要，可貼到 LINE 分享。');
-      else window.prompt('自動複製受瀏覽器限制，請長按選取以下文字複製：', text);
+      if (copied) {
+        toast('✅ 已複製行程摘要，可貼到 LINE 分享。');
+      } else {
+        window.prompt('自動複製受瀏覽器限制，請長按選取以下文字複製：', text);
+      }
     }
+
+    // 事件監聽委派
     document.addEventListener('click', e => {
       const tab = e.target.closest('[data-tab]');
       if (tab) { switchTab(tab.dataset.tab); return; }
       const focus = e.target.closest('[data-focus]');
       if (focus) { focusMap(focus.dataset.focus); return; }
       const hotel = e.target.closest('[data-show-hotel]');
-      if (hotel) { showOnMap('hotel',hotel.dataset.showHotel); return; }
+      if (hotel) { showOnMap('hotel', hotel.dataset.showHotel); return; }
       const spot = e.target.closest('[data-show-spot]');
-      if (spot) { showOnMap('spot',spot.dataset.showSpot); }
+      if (spot) { showOnMap('spot', spot.dataset.showSpot); }
     });
+
     document.getElementById('copy-summary').addEventListener('click', copyShareSummary);
+
+    // 啟動頁面渲染與預設顯示第 1 頁籤
     renderPage();
     switchTab('itinerary');
   </script>

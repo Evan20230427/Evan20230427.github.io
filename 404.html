@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>找不到頁面 - 2026 名古屋 5 日親子自由行</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // 智慧路徑自動修復與導回專案首頁
+    (function() {
+      // 判斷是否位於 GitHub Pages 專案目錄下
+      var pathname = window.location.pathname;
+      var repoPrefix = '/Nagoya-Travel-Planning-Website/';
+      var targetUrl = pathname.indexOf(repoPrefix) === 0 ? repoPrefix : './';
+      setTimeout(function() {
+        window.location.replace(targetUrl);
+      }, 3000);
+    })();
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex items-center justify-center p-4">
+  <main class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-slate-200">
+    <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+      404
+    </div>
+    <h1 class="text-xl font-extrabold text-slate-900 mb-2">找不到您要造訪的頁面</h1>
+    <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+      您輸入的網址可能已移動或不存在。系統將在 <span id="countdown" class="font-bold text-indigo-600">3</span> 秒後自動為您導航回首頁……
+    </p>
+    <a id="home-link" href="./" class="inline-block w-full bg-indigo-900 hover:bg-indigo-950 active:scale-95 transition text-white font-semibold py-3 px-6 rounded-xl shadow-md text-sm">
+      立即返回 2026 名古屋行程首頁
+    </a>
+  </main>
+
+  <script>
+    var seconds = 3;
+    var timer = setInterval(function() {
+      seconds--;
+      var el = document.getElementById('countdown');
+      if (el) el.textContent = seconds;
+      if (seconds <= 0) clearInterval(timer);
+    }, 1000);
+
+    // 設定按鈕正確的相對根路徑
+    var pathname = window.location.pathname;
+    var repoPrefix = '/Nagoya-Travel-Planning-Website/';
+    var homeLink = document.getElementById('home-link');
+    if (homeLink && pathname.indexOf(repoPrefix) === 0) {
+      homeLink.href = repoPrefix;
+    }
+  </script>
+</body>
+</html>
